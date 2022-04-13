@@ -1,10 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"fmt"
 	"log"
 	"os"
-	"time"
 
 	pb "github.com/DenysBahachuk/go-reversestr-grpc/reversestr"
 	"google.golang.org/grpc"
@@ -19,16 +20,27 @@ func main() {
 	defer conn.Close()
 	client := pb.NewReverserClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	input := "Hello"
+	reader := bufio.NewReader(os.Stdin)
 
-	response, err1 := client.ReverseString(ctx, &pb.Request{Str: input})
+	for {
+		fmt.Print("Enter a string (or press 'q' to exit): ")
+		str, err := reader.ReadString('\n')
+		if err != nil {
+			log.Printf("Error reading input: %v", err)
+			os.Exit(2)
+		}
+		if str == "q\r\n" {
+			fmt.Print("Goodbye!")
+			break
+		}
 
-	if err1 != nil {
-		log.Printf("Failed to create a user: %v", err1)
+		response, err1 := client.ReverseString(ctx, &pb.Request{Str: str})
+		if err1 != nil {
+			log.Printf("Failed to create a user: %v", err1)
+		}
+		log.Printf("Reversed string: %v", response.Str)
 	}
-
-	log.Printf("Reversed string: %v", response.Str)
 }
