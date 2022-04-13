@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package reversestr;
+
+option go_package = "github.com/DenysBahachuk/go-reversestr-grpc;go_reversestr_grpc";
+
+service Reverser {
+    rpc ReverseString(Request) returns (Response) {}
+}
+
+message Request {
+    string str = 1;
+}
+
+message Response {
+    string str = 1;
+}
